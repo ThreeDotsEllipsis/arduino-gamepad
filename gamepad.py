@@ -1,73 +1,102 @@
 from sys import pycache_prefix
 import pyautogui
 import serial
-import time
 
 arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=0.1)
 
 
-w_press = False
-s_press = False
-a_press = False
-d_press = False
+class Joystick:
+    y_up_pull = False
+    y_down_pull = False
+    x_left_pull = False
+    x_right_pull = False
+
+    y_up = "w"
+    y_down = "s"
+    x_left = "a"
+    x_right = "d"
+
+    def handle_joystick(self, input):
+        match input:
+            case b"s":
+                self.y_down_pull = True
+                pyautogui.keyDown(self.y_down)
+
+            case b"w":
+                self.y_up_pull = True
+                pyautogui.keyDown(self.y_up)
+
+            case b"ye":
+                if self.y_down_pull:
+                    self.y_down_pull = False
+                    pyautogui.keyUp(self.y_down)
+                if self.y_up_pull:
+                    self.y_up_pull = False
+                    pyautogui.keyUp(self.y_up)
+
+            case b"a":
+                self.x_left_pull = True
+                pyautogui.keyDown(self.x_left)
+
+            case b"d":
+                self.x_right_pull = True
+                pyautogui.keyDown(self.x_right)
+
+            case b"xe":
+                if self.x_right_pull:
+                    self.x_right_pull = False
+                    pyautogui.keyUp(self.x_right)
+                if self.x_left_pull:
+                    self.x_left_pull = False
+                    pyautogui.keyUp(self.x_left)
+
+
+class Buttons:
+    buttons = {
+        "a": {"bind": "e", "pressed": False},
+        "b": {"bind": "shift", "pressed": False},
+        "x": {"bind": "q", "pressed": False},
+        "y": {"bind": "c", "pressed": False},
+        "down": {"bind": "f", "pressed": False},
+        "left": {"bind": "f1", "pressed": False},
+    }
+
+    def press(self, button):
+        pyautogui.keyDown(self.buttons[button]["bind"])
+        self.buttons[button]["pressed"] = True
+
+    def handle_buttons(self, input):
+        match input:
+            case [b"905", b"906"]:
+                self.press("x")
+
+            case [b"674", b"675"]:
+                self.press("b")
+
+            case [b"560", b"561"]:
+                self.press("y")
+
+            case [b"789", b"790"]:
+                self.press("a")
+
+            case [b"335", b"336"]:
+                self.press("down")
+
+            case [b"447", b"448"]:
+                self.press("left")
+
+            case [b"be"]:
+                for k, v in self.buttons.items():
+                    if v["pressed"]:
+                        pyautogui.keyUp(k)
+                        v["pressed"] = False
+
+
+joystick = Joystick()
+button_handler = Buttons()
 
 while True:
     data = arduino.readline()
 
-    if data.strip() == b"905" or data.strip() == b"906":
-        pyautogui.keyDown("q")
-        time.sleep(0.1)
-    elif data.strip() == b"674" or data.strip() == b"675":
-        pyautogui.keyDown("shift")
-        time.sleep(0.1)
-    elif data.strip() == b"560" or data.strip() == b"561":
-        pyautogui.keyDown("c")
-        time.sleep(0.1)
-    elif data.strip() == b"789" or data.strip() == b"790":
-        pyautogui.keyDown("e")
-        time.sleep(0.1)
-    elif data.strip() == b"335" or data.strip() == b"336":
-        pyautogui.keyDown("f1")
-        time.sleep(0.1)
-    elif data.strip() == b"447" or data.strip() == b"448":
-        pyautogui.keyDown("f")
-        time.sleep(0.1)
-    elif data.strip() == b"be":
-        pyautogui.keyUp("f1")
-        pyautogui.keyUp("q")
-        pyautogui.keyUp("shift")
-        pyautogui.keyUp("c")
-        pyautogui.keyUp("e")
-        pyautogui.keyUp("f")
-
-    if data.strip() == b"s":
-        s_press = True
-        pyautogui.keyDown("s")
-        time.sleep(0.1)
-    elif data.strip() == b"w":
-        w_press = True
-        pyautogui.keyDown("w")
-        time.sleep(0.1)
-    elif data.strip() == b"ye":
-        if s_press:
-            s_press = False
-            pyautogui.keyUp("s")
-        if w_press:
-            w_press = False
-            pyautogui.keyUp("w")
-
-    if data.strip() == b"a":
-        a_press = True
-        pyautogui.keyDown("a")
-        time.sleep(0.1)
-    elif data.strip() == b"d":
-        d_press = True
-        pyautogui.keyDown("d")
-        time.sleep(0.1)
-    elif data.strip() == b"xe":
-        if d_press:
-            d_press = False
-            pyautogui.keyUp("d")
-        if a_press:
-            a_press = False
-            pyautogui.keyUp("a")
+    button_handler.handle_buttons(data.strip())
+    joystick.handle_joystick(data.strip())
