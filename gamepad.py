@@ -2,7 +2,7 @@ from sys import pycache_prefix
 import pyautogui
 import serial
 
-arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=0.1)
+arduino = serial.Serial(port="/dev/ttyACM1", baudrate=9600, timeout=0.1)
 
 
 class Joystick:
@@ -57,8 +57,8 @@ class Buttons:
         "b": {"bind": "shift", "pressed": False},
         "x": {"bind": "q", "pressed": False},
         "y": {"bind": "c", "pressed": False},
-        "down": {"bind": "f", "pressed": False},
-        "left": {"bind": "f1", "pressed": False},
+        "down": {"bind": "f1", "pressed": False},
+        "left": {"bind": "f", "pressed": False},
     }
 
     def press(self, button):
@@ -67,28 +67,28 @@ class Buttons:
 
     def handle_buttons(self, input):
         match input:
-            case [b"905", b"906"]:
+            case b"905" | b"906":
                 self.press("x")
 
-            case [b"674", b"675"]:
+            case b"674" | b"675":
                 self.press("b")
 
-            case [b"560", b"561"]:
+            case b"560" | b"561":
                 self.press("y")
 
-            case [b"789", b"790"]:
+            case b"789" | b"790":
                 self.press("a")
 
-            case [b"335", b"336"]:
+            case b"335" | b"336":
                 self.press("down")
 
-            case [b"447", b"448"]:
+            case b"447" | b"448":
                 self.press("left")
 
-            case [b"be"]:
-                for k, v in self.buttons.items():
+            case b"be":
+                for v in self.buttons.values():
                     if v["pressed"]:
-                        pyautogui.keyUp(k)
+                        pyautogui.keyUp(v["bind"])
                         v["pressed"] = False
 
 
@@ -97,6 +97,7 @@ button_handler = Buttons()
 
 while True:
     data = arduino.readline()
+    # print(data)
 
     button_handler.handle_buttons(data.strip())
     joystick.handle_joystick(data.strip())

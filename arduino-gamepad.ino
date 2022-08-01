@@ -2,12 +2,8 @@ bool holdingX = false;
 bool holdingY = false;
 bool holdingButton = false;
 
-void setup() {
-  Serial.begin(9600);
-  Serial.setTimeout(1);
-}
-
-void loop() {
+void handle_y()
+{
   if(analogRead(5) == 0)
   {
     if(!holdingY)
@@ -33,9 +29,12 @@ void loop() {
     }
     holdingY = false;
 
-  }
+  }  
+}
 
-
+void handle_x()
+{
+  
   if(analogRead(4) == 0)
   {
     if(!holdingX)
@@ -62,8 +61,10 @@ void loop() {
     holdingX = false;
 
   }
+}
 
-
+void handle_buttons()
+{
   int num = analogRead(0);
   if(num > 334)
   {
@@ -82,4 +83,15 @@ void loop() {
     }
     holdingButton = false;
   }
+}
+
+void setup() {
+  Serial.begin(9600);
+  Serial.setTimeout(1);
+}
+
+void loop() {
+  handle_y();
+  handle_x();
+  handle_buttons();
 }
