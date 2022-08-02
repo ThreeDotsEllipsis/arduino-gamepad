@@ -1,54 +1,50 @@
-from sys import pycache_prefix
 import pyautogui
 import serial
 
-arduino = serial.Serial(port="/dev/ttyACM1", baudrate=9600, timeout=0.1)
+arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=0.1)
 
 
 class Joystick:
-    y_up_pull = False
-    y_down_pull = False
-    x_left_pull = False
-    x_right_pull = False
+    joystick = {
+        "y_up": {"bind": "w", "pulled": False},
+        "y_down": {"bind": "s", "pulled": False},
+        "x_left": {"bind": "a", "pulled": False},
+        "x_right": {"bind": "d", "pulled": False},
+    }
 
-    y_up = "w"
-    y_down = "s"
-    x_left = "a"
-    x_right = "d"
+    def pull(self, input):
+        self.joystick[input]["pulled"] = True
+        pyautogui.keyDown(self.joystick[input]["bind"])
+
+    def release(self, input):
+        self.joystick[input]["pulled"] = False
+        pyautogui.keyUp(self.joystick[input]["bind"])
 
     def handle_joystick(self, input):
         match input:
             case b"s":
-                self.y_down_pull = True
-                pyautogui.keyDown(self.y_down)
+                self.pull("y_down")
 
             case b"w":
-                self.y_up_pull = True
-                pyautogui.keyDown(self.y_up)
+                self.pull("y_up")
 
             case b"ye":
-                if self.y_down_pull:
-                    self.y_down_pull = False
-                    pyautogui.keyUp(self.y_down)
-                if self.y_up_pull:
-                    self.y_up_pull = False
-                    pyautogui.keyUp(self.y_up)
+                if self.joystick["y_down"]["pulled"]:
+                    self.release("y_down")
+                if self.joystick["y_up"]["pulled"]:
+                    self.release("y_up")
 
             case b"a":
-                self.x_left_pull = True
-                pyautogui.keyDown(self.x_left)
+                self.pull("x_left")
 
             case b"d":
-                self.x_right_pull = True
-                pyautogui.keyDown(self.x_right)
+                self.pull("x_right")
 
             case b"xe":
-                if self.x_right_pull:
-                    self.x_right_pull = False
-                    pyautogui.keyUp(self.x_right)
-                if self.x_left_pull:
-                    self.x_left_pull = False
-                    pyautogui.keyUp(self.x_left)
+                if self.joystick["x_left"]["pulled"]:
+                    self.release("x_left")
+                if self.joystick["x_right"]["pulled"]:
+                    self.release("x_right")
 
 
 class Buttons:
