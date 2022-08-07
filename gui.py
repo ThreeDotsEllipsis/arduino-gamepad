@@ -10,30 +10,42 @@ class MyWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.gamepad = Gamepad("/dev/ACM0")
-
         self.widgetLayout = QtWidgets.QVBoxLayout(self)
 
-        self.portLabel = QtWidgets.QLabel("Arduino Port: ", self)
-        self.portInput = QtWidgets.QLineEdit(self)
-        self.portInput.setText("/dev/ACM0")
-        self.portLayout = QtWidgets.QHBoxLayout()
-        self.widgetLayout.addLayout(self.portLayout)
+        self.createInput("Arduino Port: ", "/dev/ACM0")
 
-        self.portLayout.addWidget(self.portLabel)
-        self.portLayout.addWidget(self.portInput)
+        self.joystickLayout = QtWidgets.QVBoxLayout()
+        self.buttonLayout = QtWidgets.QVBoxLayout()
+        self.bindLayout = QtWidgets.QHBoxLayout()
 
-        self.createBindField()
-
-    def createBindField(self):
         for k, v in self.gamepad.joystick.joystick.items():
-            self.bindLabel = QtWidgets.QLabel(k, self)
-            self.bindInput = QtWidgets.QLineEdit(self)
-            self.bindInput.setText(v["bind"])
-            self.bindLayout = QtWidgets.QHBoxLayout()
-            self.widgetLayout.addLayout(self.bindLayout)
+            self.createInput(k, v["bind"], self.joystickLayout)
 
-            self.bindLayout.addWidget(self.bindLabel)
-            self.bindLayout.addWidget(self.bindInput)
+        for k, v in self.gamepad.button_handler.buttons.items():
+            self.createInput(k, v["bind"], self.buttonLayout)
+
+        self.bindLayout.addLayout(self.joystickLayout)
+        self.bindLayout.addLayout(self.buttonLayout)
+        self.widgetLayout.addLayout(self.bindLayout)
+
+        self.runButton = QtWidgets.QPushButton("Run")
+        self.widgetLayout.addWidget(self.runButton)
+
+    def createInput(self, text, defaultInput="", parent=None):
+        if parent == None:
+            parent = self.widgetLayout
+
+        label = QtWidgets.QLabel(text, self)
+        input = QtWidgets.QLineEdit(self)
+        input.setText(defaultInput)
+        layout = QtWidgets.QHBoxLayout()
+
+        layout.addWidget(label)
+        layout.addWidget(input)
+
+        parent.addLayout(layout)
+
+        return input
 
 
 if __name__ == "__main__":
