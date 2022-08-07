@@ -88,7 +88,7 @@ class Buttons:
 
 class Gamepad:
     def __init__(self, port):
-        # self.arduino = serial.Serial(port=port, baudrate=9600, timeout=0.1)
+        self.port = port
         self.joystick = Joystick()
         self.button_handler = Buttons()
 
@@ -98,10 +98,14 @@ class Gamepad:
     def keybind_buttons(self, button, bind):
         self.button_handler.buttons[button]["bind"] = bind
 
+    def changePort(self, label, port):
+        self.port = port
+
     def run(self):
+        self.arduino = serial.Serial(port=self.port, baudrate=9600, timeout=0.1)
+
         while True:
-            # data = self.arduino.readline()
-            data = ""
+            data = self.arduino.readline()
 
             self.button_handler.handle_buttons(data.strip())
             self.joystick.handle_joystick(data.strip())

@@ -9,34 +9,42 @@ class MyWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.gamepad = Gamepad("/dev/ACM0")
+        self.gamepad = Gamepad("")
         self.widgetLayout = QtWidgets.QVBoxLayout(self)
 
-        self.createInput("Arduino Port: ", "/dev/ACM0")
+        self.createInput(
+            "Arduino Port: ", "/dev/ttyACM0", None, self.gamepad.changePort
+        )
 
         self.joystickLayout = QtWidgets.QVBoxLayout()
         self.buttonLayout = QtWidgets.QVBoxLayout()
         self.bindLayout = QtWidgets.QHBoxLayout()
 
         for k, v in self.gamepad.joystick.joystick.items():
-            self.createInput(k, v["bind"], self.joystickLayout)
+            self.createInput(
+                k, v["bind"], self.joystickLayout, self.gamepad.keybind_joystick
+            )
 
         for k, v in self.gamepad.button_handler.buttons.items():
-            self.createInput(k, v["bind"], self.buttonLayout)
+            self.createInput(
+                k, v["bind"], self.buttonLayout, self.gamepad.keybind_buttons
+            )
 
         self.bindLayout.addLayout(self.joystickLayout)
         self.bindLayout.addLayout(self.buttonLayout)
         self.widgetLayout.addLayout(self.bindLayout)
 
         self.runButton = QtWidgets.QPushButton("Run")
+        self.runButton.clicked.connect(lambda: self.gamepad.run())
         self.widgetLayout.addWidget(self.runButton)
 
-    def createInput(self, text, defaultInput="", parent=None):
+    def createInput(self, text, defaultInput="", parent=None, callback=()):
         if parent == None:
             parent = self.widgetLayout
 
         label = QtWidgets.QLabel(text, self)
         input = QtWidgets.QLineEdit(self)
+        input.textChanged.connect(lambda text: callback(label.text(), text))
         input.setText(defaultInput)
         layout = QtWidgets.QHBoxLayout()
 
@@ -44,8 +52,6 @@ class MyWidget(QtWidgets.QWidget):
         layout.addWidget(input)
 
         parent.addLayout(layout)
-
-        return input
 
 
 if __name__ == "__main__":
