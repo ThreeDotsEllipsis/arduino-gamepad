@@ -1,8 +1,6 @@
 import pyautogui
 import serial
 
-arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=0.1)
-
 
 class Joystick:
     joystick = {
@@ -88,12 +86,21 @@ class Buttons:
                         v["pressed"] = False
 
 
-joystick = Joystick()
-button_handler = Buttons()
+class Gamepad:
+    def __init__(self, port):
+        self.arduino = serial.Serial(port=port, baudrate=9600, timeout=0.1)
+        self.joystick = Joystick()
+        self.button_handler = Buttons()
 
-while True:
-    data = arduino.readline()
-    # print(data)
+    def keybind_joystick(self, axis, bind):
+        self.joystick.joystick[axis]["bind"] = bind
 
-    button_handler.handle_buttons(data.strip())
-    joystick.handle_joystick(data.strip())
+    def keybind_buttons(self, button, bind):
+        self.button_handler.buttons[button]["bind"] = bind
+
+    def run(self):
+        while True:
+            data = self.arduino.readline()
+
+            self.button_handler.handle_buttons(data.strip())
+            self.joystick.handle_joystick(data.strip())
