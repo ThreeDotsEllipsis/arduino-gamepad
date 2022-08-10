@@ -1,5 +1,8 @@
 import sys
 import random
+import threading
+
+
 from PySide6 import QtCore, QtWidgets, QtGui
 
 from gamepad import Gamepad
@@ -35,8 +38,22 @@ class MyWidget(QtWidgets.QWidget):
         self.widgetLayout.addLayout(self.bindLayout)
 
         self.runButton = QtWidgets.QPushButton("Run")
-        self.runButton.clicked.connect(lambda: self.gamepad.run())
+        self.runButton.clicked.connect(self.run)
+
+        self.stopButton = QtWidgets.QPushButton("Stop")
+        self.stopButton.clicked.connect(self.stop)
+
         self.widgetLayout.addWidget(self.runButton)
+        self.widgetLayout.addWidget(self.stopButton)
+
+    def stop(self):
+        self.gamepad.running = False
+
+    def run(self):
+        self.gamepad.running = True
+        thread = threading.Thread(target=self.gamepad.run)
+        thread.daemon = True
+        thread.start()
 
     def createInput(self, text, defaultInput="", parent=None, callback=()):
         if parent == None:

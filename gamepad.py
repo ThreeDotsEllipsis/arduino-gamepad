@@ -91,6 +91,7 @@ class Gamepad:
         self.port = port
         self.joystick = Joystick()
         self.button_handler = Buttons()
+        self.running = False
 
     def keybind_joystick(self, axis, bind):
         self.joystick.joystick[axis]["bind"] = bind
@@ -104,8 +105,13 @@ class Gamepad:
     def run(self):
         self.arduino = serial.Serial(port=self.port, baudrate=9600, timeout=0.1)
 
-        while True:
+        while self.running:
             data = self.arduino.readline()
 
             self.button_handler.handle_buttons(data.strip())
             self.joystick.handle_joystick(data.strip())
+
+
+if __name__ == "__main__":
+    gamepad = Gamepad("/dev/ttyACM0")
+    gamepad.run()
